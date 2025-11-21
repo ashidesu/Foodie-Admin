@@ -1,0 +1,453 @@
+.main-content {
+    flex: 1;
+    padding: 20px;
+    background-color: #fff;
+    overflow-y: auto;
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    width: 100%;
+    max-width: 100%; /* Ensure no overflow */
+}
+
+/* Admin Gallery Styles */
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+    width: 100%;
+    max-width: 100%; /* Ensure no overflow */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+.gallery-header h1 {
+    color: #2c3e50;
+    font-size: 2.2rem;
+    margin: 0;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    background: #f1f3f5;
+    border-radius: 30px;
+    padding: 8px 15px;
+    width: 300px;
+    max-width: 100%; /* Allow shrinking on small screens */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+.search-bar input {
+    border: none;
+    background: transparent;
+    padding: 8px;
+    width: 100%;
+    outline: none;
+    font-size: 1rem;
+    overflow-x: hidden; /* Prevent input overflow */
+}
+
+.search-bar button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #7f8c8d;
+    flex-shrink: 0;
+}
+
+/* Dish Grid Styles */
+.dish-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 100%; /* Ensure no overflow */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+.dish-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    width: 100%;
+    max-width: 100%; /* Ensure no overflow */
+    overflow-x: hidden; /* Prevent content overflow */
+}
+
+.dish-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.dish-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.dish-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.dish-card:hover .dish-image img {
+    transform: scale(1.05);
+}
+
+.dish-info {
+    padding: 20px;
+    width: 100%;
+    max-width: 100%; /* Ensure no overflow */
+}
+
+.dish-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.dish-description {
+    color: #7f8c8d;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.dish-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 100%; /* Ensure no overflow */
+}
+
+.dish-price {
+    font-weight: bold;
+    color: #e74c3c;
+    font-size: 1.2rem;
+}
+
+.dish-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.status-available {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-unavailable {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.admin-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f1f3f5;
+    width: 100%;
+    max-width: 100%; /* Ensure no overflow */
+}
+
+.admin-btn {
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap; /* Prevent button text wrapping */
+}
+
+.btn-edit {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-edit:hover {
+    background-color: #2980b9;
+}
+
+.btn-delete {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #c0392b;
+}
+
+.btn-toggle {
+    background-color: #f39c12;
+    color: white;
+}
+
+.btn-toggle:hover {
+    background-color: #d35400;
+}
+
+/* Filter Section */
+.filter-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 30px;
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 100%; /* Ensure no overflow */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Allow shrinking */
+    flex: 1; /* Allow growing to fill space */
+}
+
+.filter-group label {
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.filter-group select {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-width: 150px;
+    background: white;
+    width: 100%; /* Full width within group */
+    max-width: 100%; /* Prevent overflow */
+}
+
+.add-dish-btn {
+    background-color: #27ae60;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    margin-left: auto;
+    white-space: nowrap; /* Prevent text wrapping */
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.add-dish-btn:hover {
+    background-color: #219653;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .dish-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .dish-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 20px;
+    }
+
+    .gallery-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .search-bar {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .filter-section {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .filter-group select {
+        min-width: 100%;
+    }
+
+    .add-dish-btn {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .dish-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .dish-info {
+        padding: 16px;
+    }
+
+    .admin-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .admin-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding: 16px;
+    }
+
+    .gallery-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .search-bar {
+        width: 100%;
+    }
+
+    .filter-section {
+        padding: 12px 16px;
+        gap: 10px;
+    }
+
+    .dish-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .dish-card {
+        max-width: 100%;
+    }
+
+    .dish-info {
+        padding: 16px;
+    }
+
+    .dish-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .admin-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .admin-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 16px;
+    }
+
+    .gallery-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .search-bar {
+        padding: 6px 12px;
+    }
+
+    .search-bar input {
+        font-size: 0.9rem;
+    }
+
+    .filter-section {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .filter-group select {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .add-dish-btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+    }
+
+    .dish-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .dish-card {
+        max-width: 100%;
+    }
+
+    .dish-info {
+        padding: 12px;
+    }
+
+    .dish-title {
+        font-size: 1.1rem;
+    }
+
+    .dish-description {
+        font-size: 0.9rem;
+    }
+
+    .dish-price {
+        font-size: 1rem;
+    }
+
+    .dish-status {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+    }
+
+    .admin-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .admin-btn {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+        width: 100%;
+        justify-content: center;
+    }
+}
