@@ -4,6 +4,8 @@ import Login from './components/Login';
 import Home from './components/Home'
 import Menu from './components/Menu'
 import Order from './components/Order'
+import Settings from './components/Settings'
+import Performance from './components/Performance'  
 function App() {
 
   return (
@@ -24,6 +26,14 @@ function App() {
         <Route
           path='/orders'
           element={<Order />} />
+
+          <Route
+          path ='/settings'
+          element ={<Settings />} />
+
+        <Route
+        path = "/performance"
+        element = {<Performance />} />
       </Routes>
 
     </Router>
