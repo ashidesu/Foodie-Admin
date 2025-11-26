@@ -3,10 +3,9 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, Pie, PieChart
 } from 'recharts';
 import '../styles/home-page.css';
-import SalesByDishSection from './SalesByDishSection'; // Import the separate component
 
 const TIME_PERIODS = [
     { label: "This week", value: "thisWeek" },
@@ -14,32 +13,64 @@ const TIME_PERIODS = [
     { label: "This year", value: "thisYear" }
 ];
 
-const DISH_COLORS = [
-    "#7c3aed", "#6366f1", "#f97316", "#ec4899", "#10b981",
-    "#9333ea", "#f43f5e", "#a78bfa", "#34d399", "#60a5fa"
-];
+const InteractionsPieChart = ({ data }) => {
+    return (
+        <div style={{
+            backgroundColor: 'white',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            marginBottom: '30px'
+        }}>
+            <h2 style={{ margin: '0 0 20px 0', color: '#333' }}>Interactions Breakdown</h2>
+            <PieChart width={400} height={400}>
+                <Pie
+                    data={data}
+                    cx={200}
+                    cy={200}
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                >
+                    {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+            </PieChart>
+        </div>
+    );
+};
 
 const HomePage = () => {
     const [user, setUser] = useState(null);
-    const [restaurantId, setRestaurantId] = useState(null);
-    const [allOrders, setAllOrders] = useState([]); // Store all orders
-    const [completedOrders, setCompletedOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedPeriod, setSelectedPeriod] = useState("thisMonth");
 
     // Aggregate summary card stats
-    const [totalCustomers, setTotalCustomers] = useState(0);
-    const [totalRevenue, setTotalRevenue] = useState(0);
-    const [totalOrders, setTotalOrders] = useState(0);
-    const [dishData, setDishData] = useState([]);
+    const [dailyUsers, setDailyUsers] = useState(0);
+    const [dailyInteractions, setDailyInteractions] = useState(0);
+    const [newUsers, setNewUsers] = useState(0);
+
+    // Data for charts
+    const [lineChartData, setLineChartData] = useState([]);
+    const [comparisonChartData, setComparisonChartData] = useState([]);
+    const [interactionsData, setInteractionsData] = useState([]);
+
+    // Top performers
+    const [topUsers, setTopUsers] = useState([]);
+    const [topRestaurants, setTopRestaurants] = useState([]);
 
     useEffect(() => {
         const auth = getAuth();
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
             if (currentUser) {
-                await fetchUserAndData(currentUser);
+                await fetchData(currentUser);
             } else {
                 setError('User not authenticated');
                 setLoading(false);
@@ -75,85 +106,121 @@ const HomePage = () => {
         return { start: startDate, end: now };
     };
 
-    const fetchUserAndData = async (currentUser) => {
+    const fetchData = async (currentUser) => {
         setLoading(true);
         setError(null);
         try {
-            const userDocRef = doc(db, 'users', currentUser.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (!userDocSnap.exists()) {
-                throw new Error('User document not found');
-            }
-            const userData = userDocSnap.data();
-            const restId = userData.restaurantId;
-            if (!restId) {
-                throw new Error('Restaurant ID not found');
-            }
-            setRestaurantId(restId);
-
-            // Fetch dishes map
-            const dishesQuery = query(collection(db, 'dishes'), where('restaurantId', '==', restId));
-            const dishesSnap = await getDocs(dishesQuery);
-            const dishesMap = {};
-            dishesSnap.docs.forEach(doc => {
-                const data = doc.data();
-                dishesMap[doc.id] = {
-                    name: data.name,
-                    category: data.category,
-                    price: parseFloat(data.price) || 0,
-                };
-            });
-
             const { start: startDate, end: endDate } = getDateRange(selectedPeriod);
 
-            // Fetch all orders (not just completed)
-            const ordersQuery = query(collection(db, 'orders'), where('restaurantId', '==', restId));
+            // Fetch users
+            const usersQuery = query(collection(db, 'users'));
+            const usersSnap = await getDocs(usersQuery);
+            const allUsers = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Filter new users in period
+            const newUsersFiltered = allUsers.filter(u => {
+                const createdAt = u.createdAt?.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
+                return createdAt >= startDate && createdAt <= endDate;
+            });
+            setNewUsers(newUsersFiltered.length);
+
+            // Daily users (active in period, assuming lastLogin or similar)
+            const dailyUsersFiltered = allUsers.filter(u => {
+                const lastLogin = u.lastLogin?.toDate ? u.lastLogin.toDate() : new Date(u.lastLogin);
+                return lastLogin >= startDate && lastLogin <= endDate;
+            });
+            setDailyUsers(dailyUsersFiltered.length);
+
+            // Fetch restaurants for names
+            const restaurantsQuery = query(collection(db, 'restaurants'));
+            const restaurantsSnap = await getDocs(restaurantsQuery);
+            const restaurantsMap = {};
+            restaurantsSnap.docs.forEach(doc => {
+                const data = doc.data();
+                restaurantsMap[doc.id] = data.name || 'Unknown Restaurant';
+            });
+
+            // Fetch interactions
+            const interactionsQuery = query(collection(db, 'interactions'), where('createdAt', '>=', startDate), where('createdAt', '<=', endDate));
+            const interactionsSnap = await getDocs(interactionsQuery);
+            const interactions = interactionsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setDailyInteractions(interactions.length);
+
+            // Fetch videos uploaded
+            const videosQuery = query(collection(db, 'videos'), where('uploadedAt', '>=', startDate), where('uploadedAt', '<=', endDate));
+            const videosSnap = await getDocs(videosQuery);
+            const videos = videosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Fetch orders placed
+            const ordersQuery = query(collection(db, 'orders'), where('createdAt', '>=', startDate), where('createdAt', '<=', endDate));
             const ordersSnap = await getDocs(ordersQuery);
-            const ordersRaw = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setAllOrders(ordersRaw); // Store all orders
+            const orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            // Filter completed orders for stats and charts
-            const filteredCompletedOrders = ordersRaw.filter(order => {
-                if (!order.createdAt || order.status !== 'completed') return false;
-                const createdAtDate = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
-                return createdAtDate >= startDate && createdAtDate <= endDate;
+            // Build line chart data: interactions, videos, orders over time
+            const dataMap = {};
+            const addToData = (date, type, count = 1) => {
+                const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                if (!dataMap[label]) dataMap[label] = { date: label, interactions: 0, videos: 0, orders: 0 };
+                dataMap[label][type] += count;
+            };
+
+            interactions.forEach(i => {
+                const d = i.createdAt.toDate();
+                addToData(d, 'interactions');
             });
-            setCompletedOrders(filteredCompletedOrders);
-
-            // Calculate stats from completed orders
-            const customerIds = filteredCompletedOrders
-                .map(o => o.userId || o.customerId)
-                .filter(id => id && typeof id === 'string' && id.trim() !== '');
-            const uniqueCustomers = new Set(customerIds);
-            setTotalCustomers(uniqueCustomers.size);
-
-            const totalRevenueCalc = filteredCompletedOrders.reduce((sum, order) => sum + (parseFloat(order.totalPrice) || 0), 0);
-            setTotalRevenue(totalRevenueCalc);
-            setTotalOrders(filteredCompletedOrders.length);
-
-            // Aggregate dish data from completed orders
-            const dishSales = {};
-            filteredCompletedOrders.forEach(order => {
-                if (order.items && Array.isArray(order.items)) {
-                    order.items.forEach(item => {
-                        const dishId = item.id;
-                        const dish = dishesMap[dishId];
-                        if (dish) {
-                            const qty = parseInt(item.quantity) || 1;
-                            const price = parseFloat(item.price) || dish.price || 0;
-                            if (!dishSales[dishId]) {
-                                dishSales[dishId] = { name: dish.name, quantity: 0, revenue: 0 };
-                            }
-                            dishSales[dishId].quantity += qty;
-                            dishSales[dishId].revenue += price * qty;
-                        }
-                    });
-                }
+            videos.forEach(v => {
+                const d = v.uploadedAt.toDate();
+                addToData(d, 'videos');
+            });
+            orders.forEach(o => {
+                const d = o.createdAt.toDate();
+                addToData(d, 'orders');
             });
 
-            const dishArray = Object.values(dishSales).sort((a, b) => b.quantity - a.quantity)
-                .map((dish, idx) => ({ ...dish, color: DISH_COLORS[idx % DISH_COLORS.length] }));
-            setDishData(dishArray);
+            const lineData = Object.values(dataMap).sort((a, b) => new Date(a.date) - new Date(b.date));
+            setLineChartData(lineData);
+
+            // Comparison chart: social media (interactions + videos) vs MFOA (orders)
+            const comparisonData = lineData.map(d => ({
+                date: d.date,
+                socialMedia: d.interactions + d.videos,
+                mfoa: d.orders
+            }));
+            setComparisonChartData(comparisonData);
+
+            // Interactions pie chart data: likes, comments, views
+            const likes = interactions.filter(i => i.type === 'like').length;
+            const comments = interactions.filter(i => i.type === 'comment').length;
+            const views = interactions.filter(i => i.type === 'view').length;
+            setInteractionsData([
+                { name: 'Likes', value: likes, color: '#7c3aed' },
+                { name: 'Comments', value: comments, color: '#6366f1' },
+                { name: 'Views', value: views, color: '#f97316' }
+            ]);
+
+            // Top performing users (most interactions received)
+            const userInteractions = {};
+            interactions.forEach(i => {
+                const targetId = i.targetUserId; // Assuming interactions have targetUserId
+                userInteractions[targetId] = (userInteractions[targetId] || 0) + 1;
+            });
+            const topUsersList = Object.entries(userInteractions)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 5)
+                .map(([id, count]) => ({ id, interactions: count, name: allUsers.find(u => u.id === id)?.name || 'Unknown' }));
+            setTopUsers(topUsersList);
+
+            // Top performing restaurants (most orders received)
+            const restaurantOrders = {};
+            orders.forEach(o => {
+                const restId = o.restaurantId;
+                restaurantOrders[restId] = (restaurantOrders[restId] || 0) + 1;
+            });
+            const topRestaurantsList = Object.entries(restaurantOrders)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 5)
+                .map(([id, count]) => ({ id, orders: count, name: restaurantsMap[id] || 'Unknown Restaurant' }));
+            setTopRestaurants(topRestaurantsList);
 
         } catch (err) {
             setError(`Error fetching data: ${err.message}`);
@@ -163,86 +230,14 @@ const HomePage = () => {
         }
     };
 
-    // Accept order function
-    const handleAcceptOrder = async (orderId) => {
-        try {
-            await updateDoc(doc(db, 'orders', orderId), { status: 'preparing' });
-            // Update local state
-            setAllOrders(prev => prev.map(order =>
-                order.id === orderId ? { ...order, status: 'preparing' } : order
-            ));
-        } catch (error) {
-            console.error('Failed to accept order:', error);
-            alert('Failed to accept order. Please try again.');
-        }
-    };
-
-    // Reject order function
-    const handleRejectOrder = async (orderId) => {
-        try {
-            await updateDoc(doc(db, 'orders', orderId), { status: 'cancelled' });
-            // Update local state
-            setAllOrders(prev => prev.map(order =>
-                order.id === orderId ? { ...order, status: 'cancelled' } : order
-            ));
-        } catch (error) {
-            console.error('Failed to reject order:', error);
-            alert('Failed to reject order. Please try again.');
-        }
-    };
-
-    // Build chart data
-    const buildChartData = () => {
-        if (completedOrders.length === 0) return [];
-        const { start: startDate, end: endDate } = getDateRange(selectedPeriod);
-        const revenueByDate = {};
-        completedOrders.forEach(order => {
-            if (!order.createdAt) return;
-            const createdAtDate = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
-            if (createdAtDate < startDate || createdAtDate > endDate) return;
-            let label;
-            if (selectedPeriod === "today" || selectedPeriod === "yesterday") {
-                label = createdAtDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-            } else if (selectedPeriod === "thisWeek" || selectedPeriod === "thisMonth") {
-                label = createdAtDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            } else {
-                label = createdAtDate.toLocaleDateString('en-US', { month: 'short' });
-            }
-            revenueByDate[label] = (revenueByDate[label] || 0) + (parseFloat(order.totalPrice) || 0);
-        });
-
-        const data = [];
-        let current = new Date(startDate);
-        while (current <= endDate) {
-            let label;
-            if (selectedPeriod === "today" || selectedPeriod === "yesterday") {
-                label = current.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-                current.setHours(current.getHours() + 1);
-            } else if (selectedPeriod === "thisWeek" || selectedPeriod === "thisMonth") {
-                label = current.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                current.setDate(current.getDate() + 1);
-            } else {
-                label = current.toLocaleDateString('en-US', { month: 'short' });
-                current.setMonth(current.getMonth() + 1);
-            }
-            data.push({ date: label, revenue: revenueByDate[label] || 0 });
-        }
-        return data;
-    };
-
-    const chartData = buildChartData();
-
     if (loading) return <div className="home-page">Loading dashboard...</div>;
     if (error) return <div className="home-page">Error: {error}</div>;
-
-    // Filter uncompleted orders (pending, preparing, etc.)
-    const uncompletedOrders = allOrders.filter(order => order.status !== 'completed' && order.status !== 'cancelled').slice(-5).reverse();
 
     return (
         <div className="home-page-container" style={{ fontFamily: 'Arial, sans-serif', padding: '20px', backgroundColor: '#f9f9f9' }}>
             {/* Header */}
             <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h1 style={{ margin: 0, color: '#333' }}>Dashboard</h1>
+                <h1 style={{ margin: 0, color: '#333' }}>Admin Dashboard</h1>
                 <select
                     value={selectedPeriod}
                     onChange={e => setSelectedPeriod(e.target.value)}
@@ -257,99 +252,141 @@ const HomePage = () => {
                 </select>
             </div>
 
-
-
             {/* Summary Cards */}
             <div className="summary-cards" style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-                <div className="summary-card" aria-label="Total customers" style={cardStyle}>
-                    <h3 style={cardTitleStyle}>Total customers</h3>
+                <div className="summary-card" aria-label="Daily users" style={cardStyle}>
+                    <h3 style={cardTitleStyle}>Daily Users</h3>
                     <p style={cardStatStyle}>
-                        {totalCustomers.toLocaleString()}
+                        {dailyUsers.toLocaleString()}
                         <span style={{ color: 'green' }}> ↑ </span>
                     </p>
                 </div>
-                <div className="summary-card" aria-label="Total revenue" style={cardStyle}>
-                    <h3 style={cardTitleStyle}>Total revenue</h3>
+                <div className="summary-card" aria-label="Daily interactions" style={cardStyle}>
+                    <h3 style={cardTitleStyle}>Daily Interactions</h3>
                     <p style={cardStatStyle}>
-                        ${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {dailyInteractions.toLocaleString()}
                         <span style={{ color: 'green' }}> ↑ </span>
                     </p>
                 </div>
-                <div className="summary-card" aria-label="Total orders" style={cardStyle}>
-                    <h3 style={cardTitleStyle}>Total orders</h3>
+                <div className="summary-card" aria-label="New users" style={cardStyle}>
+                    <h3 style={cardTitleStyle}>New Users</h3>
                     <p style={cardStatStyle}>
-                        {totalOrders.toLocaleString()}
+                        {newUsers.toLocaleString()}
                         <span style={{ color: 'green' }}> ↑ </span>
                     </p>
                 </div>
             </div>
 
-            {/* Line Chart */}
-            <div className="product-sales-section" style={sectionCardStyle}>
-                <h2 style={{ margin: '0 0 20px 0', color: '#333' }}>Product sales</h2>
+            {/* Line Chart: Interactions, Videos, Orders */}
+            <div className="metrics-section" style={sectionCardStyle}>
+                <h2 style={{ margin: '0 0 20px 0', color: '#333' }}>Metrics Over Time</h2>
                 <LineChart
                     width={900}
                     height={300}
-                    data={chartData}
+                    data={lineChartData}
                     margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                    aria-label="Product sales line chart"
+                    aria-label="Metrics line chart"
                 >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
-                    <YAxis tickFormatter={v => v >= 1000 ? `${v / 1000}K` : v} />
-                    <Tooltip formatter={value => [`$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`, 'Revenue']} />
+                    <YAxis />
+                    <Tooltip />
                     <Legend verticalAlign="top" align="right" height={36} />
-                    <Line type="monotone" dataKey="revenue" name="Revenue" stroke="#f97316" strokeWidth={2} />
+                    <Line type="monotone" dataKey="interactions" name="Interactions" stroke="#7c3aed" strokeWidth={2} />
+                    <Line type="monotone" dataKey="videos" name="Videos Uploaded" stroke="#6366f1" strokeWidth={2} />
+                    <Line type="monotone" dataKey="orders" name="Orders Placed" stroke="#f97316" strokeWidth={2} />
                 </LineChart>
             </div>
 
-            {/* Calling SalesByDishSection Component */}
-            <SalesByDishSection dishData={dishData} />
-            {/* Pending Orders Section - Prioritized */}
-            <div className="recent-orders-section">
-                <h3>Pending Orders</h3>
-                <ul className="order-list">
-                    {uncompletedOrders.length === 0 ? (
-                        <p>No pending orders.</p>
-                    ) : (
-                        uncompletedOrders.map((order) => (
-                            <li key={order.id} className="order-list-item">
-                                <span className={`order-status-dot ${order.status || 'default'}`}></span>
-                                <div className="order-details">
-                                    <div className="order-id">Order {order.id}</div>
-                                    <div className="order-status">{order.status || 'Unknown'}</div>
-                                    <div className="order-total">${parseFloat(order.totalPrice).toFixed(2)}</div>
-                                </div>
-                                {order.status === 'pending' && (
-                                    <div style={{ display: 'flex', gap: '10px' }}>
-                                        <button className="accept-order-button" onClick={() => handleAcceptOrder(order.id)}>Accept</button>
-                                        <button className="accept-order-button" style={{ backgroundColor: '#dc2626' }} onClick={() => handleRejectOrder(order.id)}>Reject</button>
-                                    </div>
-                                )}
-                            </li>
-                        ))
-                    )}
-                </ul>
+            {/* Comparison Line Chart: Social Media vs MFOA */}
+            <div className="comparison-section" style={sectionCardStyle}>
+                <h2 style={{ margin: '0 0 20px 0', color: '#333' }}>Social Media vs MFOA Usage</h2>
+                <LineChart
+                    width={900}
+                    height={300}
+                    data={comparisonChartData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                    aria-label="Comparison line chart"
+                >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend verticalAlign="top" align="right" height={36} />
+                    <Line type="monotone" dataKey="socialMedia" name="Social Media (Interactions + Videos)" stroke="#10b981" strokeWidth={2} />
+                    <Line type="monotone" dataKey="mfoa" name="MFOA (Orders)" stroke="#ec4899" strokeWidth={2} />
+                </LineChart>
             </div>
-            {/* Recent Completed Orders Section */}
-            <div className="recent-orders-section">
-                <h3>Recent Completed Orders</h3>
-                <ul className="order-list">
-                    {completedOrders.slice(-5).reverse().length === 0 ? (
-                        <p>No recent completed orders.</p>
-                    ) : (
-                        completedOrders.slice(-5).reverse().map((order) => (
-                            <li key={order.id} className="order-list-item">
-                                <span className={`order-status-dot ${order.status || 'default'}`}></span>
-                                <div className="order-details">
-                                    <div className="order-id">Order {order.id}</div>
-                                    <div className="order-status">{order.status || 'Unknown'}</div>
-                                    <div className="order-total">${parseFloat(order.totalPrice).toFixed(2)}</div>
-                                </div>
-                            </li>
-                        ))
-                    )}
-                </ul>
+
+            {/* Pie Chart: Interactions Breakdown */}
+            <InteractionsPieChart data={interactionsData} />
+
+            {/* Top Performing Users */}
+            <div className="top-users-section" style={sectionCardStyle}>
+                <h3>Top Performing Users (Most Interactions Received)</h3>
+                {topUsers.length === 0 ? (
+                    <p>No data available.</p>
+                ) : (
+                    <table className="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Interactions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {topUsers.map((user, idx) => {
+                                const rank = idx + 1;
+                                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                                return (
+                                    <tr key={user.id} className={`leaderboard-row rank-${rank}`}>
+                                        <td className="rank-cell">
+                                            {rank}
+                                            {medal && <span className="medal">{medal}</span>}
+                                        </td>
+                                        <td>{user.name}</td>
+                                        <td>{user.interactions}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+
+            {/* Top Performing Restaurants */}
+            <div className="top-restaurants-section" style={sectionCardStyle}>
+                <h3>Top Performing Restaurants (Most Orders Received)</h3>
+                {topRestaurants.length === 0 ? (
+                    <p>No data available.</p>
+                ) : (
+                    <table className="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Orders</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {topRestaurants.map((rest, idx) => {
+                                const rank = idx + 1;
+                                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                                return (
+                                    <tr key={rest.id} className={`leaderboard-row rank-${rank}`}>
+                                        <td className="rank-cell">
+                                            {rank}
+                                            {medal && <span className="medal">{medal}</span>}
+                                        </td>
+                                        <td>{rest.name}</td>
+                                        <td>{rest.orders}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                )}
             </div>
         </div>
     );

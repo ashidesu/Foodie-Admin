@@ -73,11 +73,9 @@ const LeftSidebar = () => {
             }}
           >
             <span className="icon">
-              <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><title>Ml-regression-job SVG Icon</title><path fill="currentColor" d="M24 0a8 8 0 1 1-4.906 14.32l-4.774 4.774a8 8 0 1 1-1.414-1.414l4.774-4.774A8 8 0 0 1 24 0M8 18a6 6 0 1 0 0 12a6 6 0 0 0 0-12M24 2a6 6 0 1 0 0 12a6 6 0 0 0 0-12" /><path fill="currentColor" d="M32 20v12H20V20zm-2 2h-8v8h8zM12 0v12H0V0zm-2 2H2v8h8z" class="ouiIcon__fillSecondary" /></svg>
             </span>
-            <span className="link-text">Performance</span>
+            <span className="link-text">Applications</span>
           </a>
         </li>
         <li>
@@ -93,13 +91,13 @@ const LeftSidebar = () => {
             }}
           >
             <span className="icon">
-              <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 12h1.5m-6 0h6" />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
               </svg>
+
+
             </span>
-            <span className="link-text">Menu</span>
+            <span className="link-text">Statistics</span>
           </a>
         </li>
         <li>
@@ -115,32 +113,12 @@ const LeftSidebar = () => {
             }}
           >
             <span className="icon">
-              <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.801 0A2.25 2.25 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.801 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
               </svg>
+
             </span>
-            <span className="link-text">Orders</span>
-          </a>
-        </li>
-        <li>
-          <a
-            href="#"
-            id="settings-link"
-            data-option="settings"
-            data-page="../pages/settings.html"
-            className={selectedOption === 'settings' ? 'selected' : ''}
-            onClick={(e) => {
-              e.preventDefault();
-              handleLinkClick('settings', '../pages/settings.html');
-            }}
-          >
-            <span className="icon">
-              <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.1 2.16c.096.188.115.403.052.597l-.459 1.379c-.196.59-.568 1.09-.952 1.544a3.654 3.654 0 01-.349.5c-.106.143-.233.276-.363.41L14.43 15.5a2.473 2.473 0 01-1.52.902l-1.213.075c-.728.044-1.26-.34-1.449-.83l-.564-1.569c-.11-.305-.334-.56-.591-.722-.742-.582-1.24-1.068-1.73-1.558-.310-.37-.617-.82-.885-1.245-.072-.09-.143-.187-.195-.283-.096-.117-.17-.255-.219-.381l-.711-1.574a1.125 1.125 0 01.49-1.37l1.312-.522c.29-.116.65-.279.906-.52.114-.107.227-.222.325-.344.126-.163.245-.31.355-.444z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </span>
-            <span className="link-text">Settings</span>
+            <span className="link-text">Reports</span>
           </a>
         </li>
       </ul>

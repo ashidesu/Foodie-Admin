@@ -24,13 +24,13 @@ const Login = () => {
         setIsFormValid(email && password);
     }, [email, password]);
 
-    const checkBusinessRole = async () => {
+    const checkAdminRole = async () => {
         const user = auth.currentUser;
         if (!user) return false;
         try {
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             // Assuming roles is a map/object with business as a boolean inside
-            return userDoc.exists() && userDoc.data().roles?.business === true;
+            return userDoc.exists() && userDoc.data().roles?.admin === true;
         } catch (error) {
             console.error('Error checking business role:', error);
             return false;
@@ -43,10 +43,10 @@ const Login = () => {
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            const isBusiness = await checkBusinessRole();
+            const isBusiness = await checkAdminRole();
             if (!isBusiness) {
                 await signOut(auth);
-                setError('Access denied. Business account required.');
+                setError('Access denied. Admin account required.');
                 return;
             }
             navigate('/home');  // Redirect to /home if login and role check are successful
@@ -61,7 +61,7 @@ const Login = () => {
         try {
             const provider = new GoogleAuthProvider();
             await signInWithPopup(auth, provider);
-            const isBusiness = await checkBusinessRole();
+            const isBusiness = await checkAdminRole();
             if (!isBusiness) {
                 await signOut(auth);
                 setError('Access denied. Business account required.');
@@ -78,7 +78,7 @@ const Login = () => {
 
         try {
             await signInAnonymously(auth);
-            const isBusiness = await checkBusinessRole();
+            const isBusiness = await checkAdminRole();
             if (!isBusiness) {
                 await signOut(auth);
                 setError('Access denied. Business account required.');
