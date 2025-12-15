@@ -234,6 +234,194 @@
     flex-shrink: 0;
 }
 
-/* Your other styles for recent-orders, buttons etc. can remain as is */
+/* ApplicationDetailsOverlay.css */
 
-/* (Optional) Maintain consistency in font family, colors, and spacing throughout the rest of your CSS */
+/* Overlay backdrop */
+.business-application-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black backdrop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Content container */
+.business-application-content {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 0;
+    position: relative;
+    animation: slideIn 0.3s ease-in-out;
+}
+
+/* Header section */
+.ba-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+    border-radius: 12px 12px 0 0;
+}
+
+.ba-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #333333;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #666666;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.close-btn:hover {
+    background-color: #e0e0e0;
+    color: #333333;
+}
+
+/* Main content area */
+.ba-step-content {
+    padding: 20px 30px;
+    line-height: 1.6;
+}
+
+.ba-step-content h3 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333333;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+}
+
+.ba-step-content h4 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: 500;
+    color: #555555;
+}
+
+.ba-step-content p {
+    margin: 8px 0;
+    font-size: 16px;
+    color: #666666;
+}
+
+.ba-step-content strong {
+    color: #333333;
+}
+
+/* Photo gallery */
+.ba-step-content img {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.ba-step-content img:hover {
+    transform: scale(1.05);
+}
+
+/* Business hours styling */
+.ba-step-content p strong {
+    display: inline-block;
+    width: 120px; /* Align day labels */
+}
+
+/* Delivery areas */
+.ba-step-content p:last-child {
+    margin-bottom: 20px;
+}
+
+/* Additional proofs */
+.ba-step-content a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.ba-step-content a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .business-application-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .ba-header {
+        padding: 15px 20px;
+    }
+
+    .ba-header h2 {
+        font-size: 20px;
+    }
+
+    .ba-step-content {
+        padding: 15px 20px;
+    }
+
+    .ba-step-content h3 {
+        font-size: 18px;
+    }
+
+    .ba-step-content h4 {
+        font-size: 16px;
+    }
+
+    .ba-step-content img {
+        width: 120px;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: scale(0.9) translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}

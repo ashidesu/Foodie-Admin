@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, getDoc, updateDoc, setDoc, addDoc } from 'firebase/firestore';
+import { collection, query, getDocs, doc, getDoc, updateDoc, setDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import '../styles/performance-page.css'; // You may want to rename this css or keep for reuse
-
+import '../styles/performance-page.css'; // Reuse or rename as needed
+import ApplicationDetailsOverlay from './ApplicationDetailsOverlay'; // Import the new overlay
 
 const PerformancePage = () => {
     const [user, setUser] = useState(null);
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedApplication, setSelectedApplication] = useState(null); // For overlay
 
     // Listen for auth state changes
     useEffect(() => {
@@ -26,7 +27,7 @@ const PerformancePage = () => {
         return () => unsubscribe();
     }, []);
 
-    // Fetch all applications from Firestore
+    // Fetch all applications from Firestore (includes all data from BusinessApplicationOverlay)
     const fetchApplications = async () => {
         setLoading(true);
         setError(null);
@@ -34,7 +35,7 @@ const PerformancePage = () => {
             const applicationsQuery = query(collection(db, 'applications'));
             const applicationsSnap = await getDocs(applicationsQuery);
             
-            // Map over documents
+            // Map over documents (fetches all fields, including nested ones like address, photoURLs, etc.)
             const apps = applicationsSnap.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -52,7 +53,7 @@ const PerformancePage = () => {
     const approveApplication = async (application) => {
         setLoading(true);
         try {
-            const userRef = doc(db, 'users', application.userId);
+            const userRef = doc(db, 'users', application.uploaderId); // Fixed to match uploaderId
             const userDocSnap = await getDoc(userRef);
 
             if (!userDocSnap.exists()) {
@@ -63,15 +64,14 @@ const PerformancePage = () => {
 
             const userData = userDocSnap.data();
 
-            // Create restaurant doc in restaurants collection
+            // Create restaurant doc in restaurants collection (pulling data from application)
             const newRestaurantData = {
-                ownerId: application.userId,
-                // You may want to include further data from the application if available
+                ownerId: application.uploaderId,
                 name: application.restaurantName || 'Unnamed Restaurant',
-                location: application.location || '',
+                location: application.address ? `${application.address.street}, ${application.address.barangay}, ${application.address.city}, ${application.address.province}` : '',
                 deliveryAreas: application.deliveryAreas || [],
-                openHours: application.openHours || {},
-                photoUrl: application.photoUrl || '',
+                openHours: application.businessHours || {},
+                photoUrl: application.photoURLs?.displayURL || '', // Use display photo
                 createdAt: new Date(),
             };
             const restaurantRef = await addDoc(collection(db, 'restaurants'), newRestaurantData);
@@ -90,7 +90,6 @@ const PerformancePage = () => {
             const appRef = doc(db, 'applications', application.id);
             await updateDoc(appRef, { status: 'approved' });
 
-            // Also, add restaurantId to newRestaurantData for immediate use if required
             // Reload applications to refresh statuses
             await fetchApplications();
 
@@ -133,12 +132,28 @@ const PerformancePage = () => {
                         borderRadius: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.1)'
                     }}>
                         <p><strong>Application ID:</strong> {application.id}</p>
-                        <p><strong>User ID:</strong> {application.userId}</p>
+                        <p><strong>Uploader ID:</strong> {application.uploaderId}</p>
                         <p><strong>Submitted At:</strong> {application.submittedAt ? application.submittedAt.toDate ? application.submittedAt.toDate().toLocaleString() : new Date(application.submittedAt).toLocaleString() : 'N/A'}</p>
                         {application.status && <p><strong>Status:</strong> {application.status}</p>}
-                        {/* Optional display fields from app */}
                         {application.restaurantName && <p><strong>Restaurant Name:</strong> {application.restaurantName}</p>}
-                        {application.location && <p><strong>Location:</strong> {application.location}</p>}
+                        {application.address && <p><strong>Location:</strong> {`${application.address.street}, ${application.address.barangay}, ${application.address.city}, ${application.address.province}`}</p>}
+
+                        {/* New: View Details Button */}
+                        <button
+                            style={{
+                                padding: '8px 15px',
+                                marginRight: '10px',
+                                backgroundColor: '#007bff',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                marginTop: '10px'
+                            }}
+                            onClick={() => setSelectedApplication(application)}
+                        >
+                            View Details
+                        </button>
 
                         {application.status === 'pending' && (
                             <div style={{ marginTop: '10px' }}>
@@ -180,6 +195,14 @@ const PerformancePage = () => {
                     </div>
                 ))}
             </div>
+
+            {/* Overlay for Application Details */}
+            {selectedApplication && (
+                <ApplicationDetailsOverlay
+                    application={selectedApplication}
+                    onClose={() => setSelectedApplication(null)}
+                />
+            )}
         </div>
     );
 };
